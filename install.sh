@@ -3,6 +3,31 @@
 D=$(readlink -f $(dirname $0))
 source $D/common.sh
 
+function usage() {
+	cat << EOF
+usage: $0 [<OPTIONS>]
+
+Install and setup code review tools
+
+OPTIONS:
+   -h/--help          Show this message
+   -f                 Force, accepts defaults for all questions
+EOF
+}
+
+force=
+
+while getopts "f" options; do
+    case $options in
+        f ) force=1;;
+        h ) usage
+            exit 0;;
+        * ) echo unkown option: ${option}
+            usage
+            exit 1;;
+    esac
+done
+
 cecho "Setting organization name..." $green
 echo
 echo  "[The organization name is used to issue pull requests, to change the org"
@@ -11,8 +36,8 @@ echo  "--global --edit) -- This can also be a github username like: defunkt]."
 echo
 cecho "Your 'org' name? [default: cozybit] " $yellow
 
-read -p '> ' org_name
-[ -z "$org_name" ] && org_name=cozybit
+[[ -z $force ]] && read -p '> ' org_name
+[[ -z $org_name ]] && org_name=cozybit
 
 cecho "Installing review tools..." $green
 echo_eval sudo install git-review /usr/local/bin/git-review || die "git-review install failed"
@@ -28,13 +53,13 @@ cecho "Adding 'org' alias..." $green
 echo_eval git config --global alias.org "!echo $org_name"
 
 cecho "Adding 'pr' alias to build a pull-request based on 'origin/master'..." $green
-echo_eval git config --global alias.pr "!git prb master"                                          
+echo_eval git config --global alias.pr "!git prb master"
 
 cecho "Adding 'prb' alias to build a pull-request based on an arbitrary branch on 'origin'..." $green
-echo_eval git config --global alias.prb "!git-pullreq $1"                                                    
+echo_eval git config --global alias.prb '!git-pullreq $1'
 
 cecho "Adding 'review' alias which walks through commits and diffs each change..." $green
-echo_eval git config --global alias.review "!git-review"                                                 
+echo_eval git config --global alias.review "!git-review"
 
 cecho "Adding 'rup' alias which updates the remotes, and removes stale branches..." $green
 echo_eval git config --global alias.rup "remote update --prune"
@@ -56,7 +81,7 @@ fi
 
 if [[ -z $install_hub ]]; then
     cecho "Install new 'hub' tool? [y/N] " $yellow
-    read -p '> ' install_hub
+    [[ -z $force ]] && read -p '> ' install_hub
     [[ ! $install_hub =~ [Yy] ]] && install_hub=
 fi
 

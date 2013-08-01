@@ -33,7 +33,7 @@ cp $patch $prev
 [ -z "$EDITOR" ] && EDITOR=vi
 $EDITOR $patch
 
-diff $prev $patch 2>&1 >/dev/null && die "pull-request summary not modified"
+diff -w $prev $patch &>/dev/null && die "pull-request summary not modified"
 
 cbr=$(git cbr)
 org=$(git org)
