@@ -1,0 +1,42 @@
+#!/bin/bash
+
+die() { echo $*; exit 1; }
+
+[ -z "$1" ] && die "specify a branch to diff against"
+
+reponame=$(basename `git rev-parse --show-toplevel`)
+sumname=`git symbolic-ref HEAD | sed s#refs/heads/##`
+
+patch=/tmp/pull-request-$sumname.mkd
+pattern='``` diff'
+
+if [ ! -e "$patch" ]; then
+    echo 'PULL-REQUEST-TITLE' >>$patch
+    echo >>$patch
+
+else
+    upto=`tempfile`
+
+    awk "{if(\$0 ~ /$pattern/){flag=1} if(flag==0){print \$0}}" $patch >$upto
+    cp $upto $patch
+
+    rm $upto
+fi
+
+echo $pattern >>$patch
+git format-patch --stdout origin/$1 >>$patch
+echo '```' >>$patch
+
+prev=`tempfile`
+cp $patch $prev
+
+[ -z "$EDITOR" ] && EDITOR=vi
+$EDITOR $patch
+
+diff $prev $patch 2>&1 >/dev/null && die "pull-request summary not modified"
+
+cbr=$(git cbr)
+org=$(git org)
+
+hub pull-request -F $patch -b $org:$1 -h $org:$cbr \
+    && rm -f $patch
