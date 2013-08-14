@@ -106,3 +106,15 @@ if [[ $install_hub =~ [Yy] ]]; then
     _popd
     rm -rf $install_dir
 fi
+
+pygithub_url=https://github.com/jacquev6/PyGithub
+install_pygithub=
+
+if ! Q python -c "import github"; then
+    cecho "Looks like the 'github' Python library is missing ($pygithub_url)..." $yellow
+    install_pygithub=y
+fi
+
+if [[ $install_pygithub =~ [Yy] ]]; then
+    echo_eval sudo pip install PyGithub
+fi
