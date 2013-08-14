@@ -118,3 +118,15 @@ fi
 if [[ $install_pygithub =~ [Yy] ]]; then
     echo_eval sudo pip install PyGithub
 fi
+
+pygit_url=https://github.com/gitpython-developers/GitPython
+install_pygit=
+
+if ! Q python -c "import git"; then
+    cecho "Looks like the 'git' Python library is missing ($pygit_url)..." $yellow
+    install_pygit=y
+fi
+
+if [[ $install_pygit =~ [Yy] ]]; then
+    echo_eval sudo pip install GitPython
+fi
