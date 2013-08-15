@@ -42,7 +42,7 @@ cecho "Your 'org' name? [default: cozybit] " $yellow
 cecho "Installing review tools..." $green
 echo_eval sudo install git-review  "/usr/local/bin/git-review" || die "git-review install failed"
 echo_eval sudo install git-pullreq "/usr/local/bin/git-pullreq" || die "git-pullreq install failed"
-echo_eval sudo install git-pullreq "/usr/local/bin/git-update-pr" || die "git-update-pr install failed"
+echo_eval sudo install git-update-pr "/usr/local/bin/git-update-pr" || die "git-update-pr install failed"
 
 cecho "Adding 'apr' alias to setup 'pull-request' as a remote key..." $green
 echo_eval git config --global alias.apr "config --add remote.origin.fetch +refs/pull/*/head:refs/remotes/origin/pull-request/*"
