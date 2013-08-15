@@ -4,6 +4,8 @@ import re
 import os
 import sys
 
+from time import sleep
+
 from subprocess import check_output
 from subprocess import call
 from subprocess import Popen
@@ -18,48 +20,43 @@ from github import Github
 
 from github.GithubException import UnknownObjectException
 
-
 import github
 #github.enable_console_debug_logging()
 
 PR_REGEX = re.compile("``` diff.*```", re.DOTALL)
 GITHUB_TOKEN = os.path.expanduser("~/.git_pull_req_auth")
+
 github = None
 
 if not os.path.exists(GITHUB_TOKEN):
-
+    print 'Script requires GitHub login/password (only once)...'
     user = raw_input("GitHub username: ")
     pw = getpass("GitHub password: ")
-
     github = Github(user, pw)
     user = github.get_user()
-
+    print 'Creating authorization token...'
     auth = user.create_authorization(
             scopes=["repo"],
             note="git-update-pr",
             note_url="https://github.com/cozybit/cozyreview")
-
     open(GITHUB_TOKEN, 'w').write(auth.token)
-
     token = auth.token
-
 else:
-
     token = open(GITHUB_TOKEN, 'r').read()
 
-
 github = Github(token)
-
 user = github.get_user()
-print 'Username:', user.login
+print 'Token resolved to GitHub username:', user.login
 
 try:
+    print 'Getting repo for current directory...'
     gitrepo = Repo(os.getcwd())
 except:
     sys.stderr.write('ERROR: Failed to find git repository\n')
     sys.exit(1)
 
 try:
+    print 'Finding URL of remote named \'origin\' (which must use the SSH protocol)...'
     remote_url = gitrepo.config_reader().get('remote "origin"', "url")
 except:
     sys.stderr.write("ERROR: Failed to find remote named 'origin'\n")
@@ -87,15 +84,21 @@ except UnknownObjectException:
     org = github.get_user(orgname)
 
 ghrepo = org.get_repo(projname)
+print 'Repository found:', ghrepo.html_url
 
-print 'Project:', ghrepo.html_url
-
-active_branch_name = gitrepo.active_branch.name
-
+print 'Updating remote \'origin\' to find new commits...'
 os.spawnvp(os.P_WAIT, "git", ["git", "remote", "update", "origin"])
 
+active_branch_name = gitrepo.active_branch.name
+print 'Using branch name for pull request:', active_branch_name
+
 cmd = ["git", "cherry", "origin/" + active_branch_name, active_branch_name]
+
 has_new_commits = 0 < len(check_output(cmd).splitlines())
+if not has_new_commits:
+    sys.stderr.write("ERROR: No new commits found, aborting\n")
+
+print 'Finding pull request for branch name:', active_branch_name
 
 for pr in ghrepo.get_pulls():
 
@@ -104,10 +107,12 @@ for pr in ghrepo.get_pulls():
         continue
     
     updated_patch = check_output(
-            ["git", "format-patch", "--stdout", "origin/master" ])
+        ["git", "format-patch", "--stdout", "origin/master"])
+        #["git", "format-patch", "--stdout", "origin/" + active_branch_name])
 
     new_pr_diff = "``` diff\n" + updated_patch + "```"
-    updated_pr_body = PR_REGEX.sub(new_pr_diff, pr.body)
+    updated_pr_body = PR_REGEX.sub(new_pr_diff[:6144], pr.body)
+    #updated_pr_body = str(pr.body)
 
     editor = "vi"
     if 'EDITOR' in os.environ:
@@ -130,7 +135,9 @@ for pr in ghrepo.get_pulls():
         sys.stderr.write("ERROR: Editor was aborted\n")
         sys.exit(1)
 
-    exit_code = Popen(["diff", "-w", fp_orig.name, fp.name], stdout=PIPE, stderr=PIPE).wait()
+    exit_code = Popen(["diff", "-w", fp_orig.name, fp.name],
+            stdout=PIPE, stderr=PIPE).wait()
+
     if exit_code == 0:
         sys.stderr.write("ERROR: Pull request body not modified\n")
         sys.exit(1)
@@ -140,5 +147,22 @@ for pr in ghrepo.get_pulls():
     lines = fp.read().splitlines()
     updated_title, updated_pr_body = lines[0], str.join("\n", lines[1:]).strip()
 
+    print 'Updating pull request, adding new issue comment with new diff...'
+
     pr.edit(title=updated_title, body=updated_pr_body)
+    sleep(1)
     pr.create_issue_comment(updated_pr_body)
+
+    #pr.create_issue_comment(new_pr_diff)
+
+
+print
+print '*** NOTE ********************************************'
+print
+print 'Please run:'
+print '\tgit push -f origin ', active_branch_name
+print
+print '... to finish updating pull-request'
+print
+print '*****************************************************'
+print
