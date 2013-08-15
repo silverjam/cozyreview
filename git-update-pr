@@ -110,9 +110,9 @@ for pr in ghrepo.get_pulls():
         ["git", "format-patch", "--stdout", "origin/master"])
         #["git", "format-patch", "--stdout", "origin/" + active_branch_name])
 
-    new_pr_diff = "``` diff\n" + updated_patch + "```"
-    updated_pr_body = PR_REGEX.sub(new_pr_diff[:6144], pr.body)
-    #updated_pr_body = str(pr.body)
+    new_pr_diff = "``` diff\n" + updated_patch[:6144] + "\n```"
+    updated_pr_body = PR_REGEX.sub(new_pr_diff, pr.body)
+    updated_pr_body = updated_pr_body.replace("\r\n", "\n")
 
     editor = "vi"
     if 'EDITOR' in os.environ:
@@ -147,10 +147,11 @@ for pr in ghrepo.get_pulls():
     lines = fp.read().splitlines()
     updated_title, updated_pr_body = lines[0], str.join("\n", lines[1:]).strip()
 
-    print 'Updating pull request, adding new issue comment with new diff...'
+    print 'Updating pull request, adding new issue comment with new diff (len=%d)...' % (len(updated_title+updated_pr_body),)
 
     pr.edit(title=updated_title, body=updated_pr_body)
     sleep(1)
+
     pr.create_issue_comment(updated_pr_body)
 
     #pr.create_issue_comment(new_pr_diff)
