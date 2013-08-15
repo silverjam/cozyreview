@@ -111,26 +111,21 @@ if [[ $install_hub =~ [Yy] ]]; then
     rm -rf $install_dir
 fi
 
+if ! Q which pip; then
+    cecho "Looks like the 'pip' Python library install tool is missing, installing..." $yellow
+    echo_eval sudo apt-get install python-pip
+fi
+
 pygithub_url=https://github.com/jacquev6/PyGithub
-install_pygithub=
 
 if ! Q python -c 'import github'; then
     cecho "Looks like the 'github' Python library is missing ($pygithub_url)..." $yellow
-    install_pygithub=y
-fi
-
-if [[ $install_pygithub =~ [Yy] ]]; then
     echo_eval sudo pip install PyGithub
 fi
 
 pygit_url=https://github.com/gitpython-developers/GitPython
-install_pygit=
 
 if ! Q python -c 'import git'; then
     cecho "Looks like the 'git' Python library is missing ($pygit_url)..." $yellow
-    install_pygit=y
-fi
-
-if [[ $install_pygit =~ [Yy] ]]; then
     echo_eval sudo pip install GitPython
 fi
