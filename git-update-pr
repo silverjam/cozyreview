@@ -97,6 +97,7 @@ cmd = ["git", "cherry", "origin/" + active_branch_name, active_branch_name]
 has_new_commits = 0 < len(check_output(cmd).splitlines())
 if not has_new_commits:
     sys.stderr.write("ERROR: No new commits found, aborting\n")
+    sys.exit(1)
 
 print 'Finding pull request for branch name:', active_branch_name
 
