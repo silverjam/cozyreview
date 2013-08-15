@@ -40,8 +40,9 @@ cecho "Your 'org' name? [default: cozybit] " $yellow
 [[ -z $org_name ]] && org_name=cozybit
 
 cecho "Installing review tools..." $green
-echo_eval sudo install git-review /usr/local/bin/git-review || die "git-review install failed"
-echo_eval sudo install git-pullreq /usr/local/bin/git-pullreq || die "git-pullreq install failed"
+echo_eval sudo install git-review  "/usr/local/bin/git-review" || die "git-review install failed"
+echo_eval sudo install git-pullreq "/usr/local/bin/git-pullreq" || die "git-pullreq install failed"
+echo_eval sudo install git-update-pr "/usr/local/bin/git-update-pr" || die "git-update-pr install failed"
 
 cecho "Adding 'apr' alias to setup 'pull-request' as a remote key..." $green
 echo_eval git config --global alias.apr "config --add remote.origin.fetch +refs/pull/*/head:refs/remotes/origin/pull-request/*"
@@ -54,6 +55,9 @@ echo_eval git config --global alias.org "!echo $org_name"
 
 cecho "Adding 'pr' alias to build a pull-request based on 'origin/master'..." $green
 echo_eval git config --global alias.pr "!git prb master"
+
+cecho "Adding 'upr' alias to update a pull-request based on 'origin/master'..." $green
+echo_eval git config --global alias.upr "!git-update-pr"
 
 cecho "Adding 'prb' alias to build a pull-request based on an arbitrary branch on 'origin'..." $green
 echo_eval git config --global alias.prb '!git-pullreq $1'
@@ -106,3 +110,28 @@ if [[ $install_hub =~ [Yy] ]]; then
     _popd
     rm -rf $install_dir
 fi
+
+pygithub_url=https://github.com/jacquev6/PyGithub
+install_pygithub=
+
+if ! Q python -c 'import github'; then
+    cecho "Looks like the 'github' Python library is missing ($pygithub_url)..." $yellow
+    install_pygithub=y
+fi
+
+if [[ $install_pygithub =~ [Yy] ]]; then
+    echo_eval sudo pip install PyGithub
+fi
+
+pygit_url=https://github.com/gitpython-developers/GitPython
+install_pygit=
+
+if ! Q python -c 'import git'; then
+    cecho "Looks like the 'git' Python library is missing ($pygit_url)..." $yellow
+    install_pygit=y
+fi
+
+if [[ $install_pygit =~ [Yy] ]]; then
+    echo_eval sudo pip install GitPython
+fi
+#foo
