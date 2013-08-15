@@ -11,9 +11,9 @@ function die () {
 # usage: Q <anything>
 function Q () {
         if [ "${VERBOSE}" == "1" ]; then
-                $*
+                "$@"
         else
-                $* &> /dev/null
+                "$@" &> /dev/null
         fi
 }
 
