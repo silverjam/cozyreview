@@ -23,6 +23,10 @@ from github.GithubException import UnknownObjectException
 import github
 #github.enable_console_debug_logging()
 
+# Approximate value of the magic length that GitHub will allow
+#   for the length of a new comment:
+PATCH_MAX_LENGTH = 6144
+
 PR_REGEX = re.compile("``` diff.*```", re.DOTALL)
 GITHUB_TOKEN = os.path.expanduser("~/.git_pull_req_auth")
 
@@ -111,7 +115,12 @@ for pr in ghrepo.get_pulls():
         ["git", "format-patch", "--stdout", "origin/master"])
         #["git", "format-patch", "--stdout", "origin/" + active_branch_name])
 
-    new_pr_diff = "``` diff\n" + updated_patch[:6144] + "\n```"
+    if len(updated_patch) > PATCH_MAX_LENGTH:
+        sys.stderr.write("*************************#*************\n")
+        sys.stderr.write("* WARNING: Patch too big, truncating! *\n")
+        sys.stderr.write("*************************#*************\n")
+
+    new_pr_diff = "``` diff\n" + updated_patch[:PATCH_MAX_LENGTH] + "\n```"
     updated_pr_body = PR_REGEX.sub(new_pr_diff, pr.body)
     updated_pr_body = updated_pr_body.replace("\r\n", "\n")
 
