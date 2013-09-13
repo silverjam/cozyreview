@@ -11,15 +11,17 @@ Install and setup code review tools
 
 OPTIONS:
    -h/--help          Show this message
+   -j                 Install extra RSSI reducing aliases
    -f                 Force, accepts defaults for all questions
 EOF
 }
 
 force=
 
-while getopts "f" options; do
+while getopts "fjh" options; do
     case $options in
         f ) force=1;;
+        j ) yay_rssi=1;;
         h ) usage
             exit 0;;
         * ) echo unkown option: ${option}
@@ -67,6 +69,44 @@ echo_eval git config --global alias.review "!git-review"
 cecho "Adding 'rup' / 'remote-update-prune' alias which updates the remotes, and removes stale branches..." $green
 echo_eval git config --global alias.rup "remote update --prune"
 echo_eval git config --global alias.remote-update-prune "remote update --prune"
+
+if [[ -n $yay_rssi ]]; then
+    cecho "Adding 'wipe' which ruthlessly murders anything that's not in the git repo (DANGEROUS)..." $green
+    echo_eval git config --global alias.wipe "!git reset --hard;git clean -fdx"
+
+    cecho "Adding 'co' alias for 'git checkout'..." $green
+    echo_eval git config --global alias.co "checkout"
+
+    cecho "Adding 'cob' / 'checkout-branch' alias for 'git checkout -b'..." $green
+    echo_eval git config --global alias.cob "checkout -b"
+    echo_eval git config --global alias.checkout-branch "!git cob"
+
+    cecho "Adding 'com' / 'checkout-master' alias for 'git checkout master'..." $green
+    echo_eval git config --global alias.cob "checkout master"
+    echo_eval git config --global alias.checkout-master "!git com"
+
+    cecho "Adding 'st' alias for 'git status'..." $green
+    echo_eval git config --global alias.st "status"
+
+    cecho "Adding 'ci' alias for 'git checkin'..." $green
+    echo_eval git config --global alias.ci "commit --verbose"
+
+    cecho "Adding 'cia' / 'commit-add' alias which automatically adds all files, diffs and opens a commit..." $green
+    echo_eval git config --global alias.cia "commit -a --verbose"
+    echo_eval git config --global alias.commit-add "!git cia"
+
+    cecho "Adding 'mff' / 'merge-ff' alias which does a fast-foward merge..." $green
+    echo_eval git config --global alias.mff "merge --ff-only"
+    echo_eval git config --global alias.commit-add "!git mff"
+
+    cecho "Adding 'pom' / 'push-origin-master' alias which does a 'push origin master'..." $green
+    echo_eval git config --global alias.pom "push origin master"
+    echo_eval git config --global alias.push-origin-master "!git pom"
+
+    cecho "Adding 'mffpom' alias which does a fast-foward merge, then pushes to origin 'master'..." $green
+    echo_eval git config --global alias.mffpom "!git mff $1 && git pom" 
+
+fi
 
 hub_url=https://github.com/github/hub
 
