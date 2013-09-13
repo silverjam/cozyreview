@@ -44,29 +44,29 @@ echo_eval sudo install git-review  "/usr/local/bin/git-review" || die "git-revie
 echo_eval sudo install git-pullreq "/usr/local/bin/git-pullreq" || die "git-pullreq install failed"
 echo_eval sudo install git-update-pr "/usr/local/bin/git-update-pr" || die "git-update-pr install failed"
 
-cecho "Adding 'apr' alias to setup 'pull-request' as a remote key..." $green
-echo_eval git config --global alias.apr "config --add remote.origin.fetch +refs/pull/*/head:refs/remotes/origin/pull-request/*"
-
-cecho "Adding 'cbr' alias..." $green
+## Internal aliases not worth mentioning
+echo_eval git config --global alias.add-pull-request-remote "config --add remote.origin.fetch +refs/pull/*/head:refs/remotes/origin/pull-request/*"
 echo_eval git config --global alias.cbr "rev-parse --abbrev-ref HEAD"
-
-cecho "Adding 'org' alias..." $green
 echo_eval git config --global alias.org "!echo $org_name"
 
-cecho "Adding 'pr' alias to build a pull-request based on 'origin/master'..." $green
+cecho "Adding 'pr' / 'pull-request' alias to build a pull-request based on 'origin/master'..." $green
 echo_eval git config --global alias.pr "!git prb master"
+echo_eval git config --global alias.pull-request "!git pr"
 
-cecho "Adding 'upr' alias to update a pull-request based on 'origin/master'..." $green
+cecho "Adding 'upr' / 'update-pull-request' alias to update a pull-request based on 'origin/master'..." $green
 echo_eval git config --global alias.upr "!git-update-pr"
+echo_eval git config --global alias.update-pull-request "!git upr"
 
-cecho "Adding 'prb' alias to build a pull-request based on an arbitrary branch on 'origin'..." $green
+cecho "Adding 'prb' / 'branch-pull-request' alias to build a pull-request based on an arbitrary branch in 'origin' master..." $green
 echo_eval git config --global alias.prb '!git-pullreq $1'
+echo_eval git config --global alias.branch-pull-request '!git prb'
 
 cecho "Adding 'review' alias which walks through commits and diffs each change..." $green
 echo_eval git config --global alias.review "!git-review"
 
-cecho "Adding 'rup' alias which updates the remotes, and removes stale branches..." $green
+cecho "Adding 'rup' / 'remote-update-prune' alias which updates the remotes, and removes stale branches..." $green
 echo_eval git config --global alias.rup "remote update --prune"
+echo_eval git config --global alias.remote-update-prune "remote update --prune"
 
 hub_url=https://github.com/github/hub
 
