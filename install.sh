@@ -82,7 +82,7 @@ if [[ -n $yay_rssi ]]; then
     echo_eval git config --global alias.checkout-branch "!git cob"
 
     cecho "Adding 'com' / 'checkout-master' alias for 'git checkout master'..." $green
-    echo_eval git config --global alias.cob "checkout master"
+    echo_eval git config --global alias.com "checkout master"
     echo_eval git config --global alias.checkout-master "!git com"
 
     cecho "Adding 'st' alias for 'git status'..." $green
