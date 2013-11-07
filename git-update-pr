@@ -80,12 +80,14 @@ if ':' not in remote_url:
 
 _, orgprojgit = remote_url.split(":")
 orgname, projgit = orgprojgit.split('/')
-projname = projgit.rstrip(".git")
+projname = projgit[:-4]
 
 try:
     org = github.get_organization(orgname)
 except UnknownObjectException:
     org = github.get_user(orgname)
+
+print 'Getting repo name for:', projname
 
 ghrepo = org.get_repo(projname)
 print 'Repository found:', ghrepo.html_url
@@ -99,9 +101,11 @@ print 'Using branch name for pull request:', active_branch_name
 cmd = ["git", "cherry", "origin/" + active_branch_name, active_branch_name]
 
 has_new_commits = 0 < len(check_output(cmd).splitlines())
-if not has_new_commits:
-    sys.stderr.write("ERROR: No new commits found, aborting\n")
-    sys.exit(1)
+
+if not ('UPR_FORCE' in os.environ and os.environ['UPR_FORCE'] == '1'):
+    if not has_new_commits:
+        sys.stderr.write("ERROR: No new commits found, aborting\n")
+        sys.exit(1)
 
 print 'Finding pull request for branch name:', active_branch_name
 
@@ -110,15 +114,15 @@ for pr in ghrepo.get_pulls():
     org_name, branch_name = pr.head.label.split(":")
     if branch_name != active_branch_name:
         continue
-    
+
     updated_patch = check_output(
         ["git", "format-patch", "--stdout", "origin/master"])
         #["git", "format-patch", "--stdout", "origin/" + active_branch_name])
 
     if len(updated_patch) > PATCH_MAX_LENGTH:
-        sys.stderr.write("*************************#*************\n")
+        sys.stderr.write("***************************************\n")
         sys.stderr.write("* WARNING: Patch too big, truncating! *\n")
-        sys.stderr.write("*************************#*************\n")
+        sys.stderr.write("***************************************\n")
 
     new_pr_diff = "``` diff\n" + updated_patch[:PATCH_MAX_LENGTH] + "\n```"
     updated_pr_body = PR_REGEX.sub(new_pr_diff, pr.body)
@@ -133,7 +137,7 @@ for pr in ghrepo.get_pulls():
     title = pr.title + "\n\n"
     fp.write(title)
     fp.write(updated_pr_body)
-    
+
     fp.flush()
     fp.seek(0)
     fp_orig.write(fp.read())
