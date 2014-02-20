@@ -1,4 +1,5 @@
-D=$(readlink -f $(dirname $BASH_SOURCE))
+[[ "$(uname)" == "Darwin" ]] && readlink=greadlink || readlink=readlink
+D=$($readlink -f $(dirname $BASH_SOURCE))
 
 # print message and exit the script
 # usage: die <message>
@@ -17,14 +18,14 @@ function Q () {
         fi
 }
 
-black='\E[1;30m'
-red='\E[1;31m'
-green='\E[1;32m'
-yellow='\E[1;33m'
-blue='\E[1;34m'
-magenta='\E[1;35m'
-cyan='\E[1;36m'
-white='\E[1;37m'
+black=$'\E[1;30m'
+red=$'\E[1;31m'
+green=$'\E[1;32m'
+yellow=$'\E[1;33m'
+blue=$'\E[1;34m'
+magenta=$'\E[1;35m'
+cyan=$'\E[1;36m'
+white=$'\E[1;37m'
 
 function cecho ()            # Color-echo.
                              # Argument $1 = message
