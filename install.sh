@@ -1,7 +1,9 @@
 #!/bin/bash
 
-D=$(readlink -f $(dirname $0))
-source $D/common.sh
+[[ "$(uname)" == "Darwin" ]] && readlink=greadlink || readlink=readlink
+D=$($readlink -f $(dirname $0))
+
+source $D/common.sh || exit 1
 
 function usage() {
 	cat << EOF
